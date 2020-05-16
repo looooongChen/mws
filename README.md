@@ -97,6 +97,15 @@ Note:
 
 Combined with deep learning approaches, the attractive and repulsive weights can be explicitly predicted<sup>\[1\]</sup> or implicitly estimated through pixel embedding<sup>\[2\]</sup>.
 
+If you work on pixel embedding, the following class may be helpfull:
+
+```python
+class MutexPixelEmbedding(object):
+    ...
+```
+
+## Reference
+
 \[1\] [Superhuman Accuracy on the Snemi3d Connectomics Challenge](https://arxiv.org/abs/1706.00120)  
 
 \[2\] [Instance Segmentation of Biomedical Images with an Object-aware Embedding Learned with Local Constraints](https://www.researchgate.net/publication/340826279_Instance_Segmentation_of_Biomedical_Images_with_an_Object-aware_Embedding_Learned_with_Local_Constraints)
