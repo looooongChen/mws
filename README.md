@@ -97,7 +97,7 @@ Note:
 
 Combined with deep learning approaches, the attractive and repulsive weights can be explicitly predicted<sup>\[1\]</sup> or implicitly estimated through pixel embedding<sup>\[2\]</sup>.
 
-If you work on pixel embedding, the following class may be helpfull:
+If you work on pixel embedding, the following class may be also helpful:
 
 ```python
 class MutexPixelEmbedding(object):
