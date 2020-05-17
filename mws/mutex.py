@@ -1,7 +1,7 @@
 import numpy as np
 from mws.src.mws import mws2d_c, mws3d_c
 
-def mws2d(attractive, repulsive, repulsive_range):
+def mws2d(attractive, repulsive, repulsive_range, min_size=None):
     '''
     python arguments: 
        attractive (H x W x 2), positive float32:
@@ -9,7 +9,8 @@ def mws2d(attractive, repulsive, repulsive_range):
        repulsive (H x W, 4), positive float32:
            repulsive weights along (dim1)-axis, (dim2)-axis, (dim1,dim2)-diagnal, (dim1,-dim2)-diagnal direction
            margin area will be ingored
-       rep_range l, int:
+       rep_range l: distance of repulsive force
+       min_size: minimal number of pixels to form a cluster
     
     Note: 
        - only attractive / repulisve != 0 will be processed, to reduce the computation workload, set non-concerning edge to zeor
@@ -19,9 +20,10 @@ def mws2d(attractive, repulsive, repulsive_range):
     assert attractive.shape[-1] == 2
     assert repulsive.shape[-1] == 4
     assert repulsive_range > 0
-    return mws2d_c(attractive.astype(np.float32), np.abs(repulsive.astype(np.float32)), int(repulsive_range))
+    min_size = 0 if min_size is None else min_size
+    return mws2d_c(attractive.astype(np.float32), np.abs(repulsive.astype(np.float32)), int(repulsive_range), int(min_size))
 
-def mws3d(attractive, repulsive, repulsive_range):
+def mws3d(attractive, repulsive, repulsive_range, min_size):
     '''
     python arguments: 
        attractive (H x W x D x 3), positive float32:
@@ -29,7 +31,8 @@ def mws3d(attractive, repulsive, repulsive_range):
        repulsive (H x W x D x 9), positive float32:
            repulsive weights along (dim1)-axis, (dim2)-axis, (dim3)-axis (dim1,dim2)-diagnal, (dim1,-dim2)-diagnal, (dim1,dim3)-diagnal, (dim1,-dim3)-diagnal, (dim2,dim3)-diagnal, (dim2,-dim3)-diagnal direction
            margin area will be ingored
-       rep_range l, int:
+       rep_range l: distance of repulsive force
+       min_size: minimal number of pixels to form a cluster
     
     Note: 
        - only attractive / repulisve != 0 will be processed, to reduce the computation workload, set non-concerning edge to zeor
@@ -39,14 +42,16 @@ def mws3d(attractive, repulsive, repulsive_range):
     assert attractive.shape[-1] == 3
     assert repulsive.shape[-1] == 9
     assert repulsive_range > 0
-    return mws3d_c(attractive.astype(np.float32), np.abs(repulsive.astype(np.float32)), int(repulsive_range))
+    min_size = 0 if min_size is None else min_size
+    return mws3d_c(attractive.astype(np.float32), np.abs(repulsive.astype(np.float32)), int(repulsive_range), int(min_size))
     
 
 class MutexPixelEmbedding(object):
 
-    def __init__(self, similarity='cos', lange_range=4):
+    def __init__(self, similarity='cos', lange_range=4, min_size=0):
         self.similarity = similarity
         self.lange_range = lange_range
+        self.min_size = min_size
     
     def run(self, image, mask=None):
         '''
@@ -124,11 +129,10 @@ class MutexPixelEmbedding(object):
             rep = rep * mask
 
         if len(sz) == 2:
-            res = mws2d(attr, rep, l)
-            return res * np.squeeze(mask)
+            return mws2d(attr, rep, l, self.min_size) * np.squeeze(mask)
+
         if len(sz) == 3:
-            res = mws3d(attr, rep, l)
-            return res * np.squeeze(mask)
+            return mws3d(attr, rep, l, self.min_size) * np.squeeze(mask)
 
 
         

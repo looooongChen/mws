@@ -54,7 +54,7 @@ python setup.py build
 
 The usage is simple by just calling: 
 ```python
-mws2d(attractive, repulsive, repulsive_range)
+mws2d(attractive, repulsive, repulsive_range, min_size)
 '''
 Args: 
     attractive: (H x W, 2) attractive weights with neigbor pixels (with distance 1) along directions
@@ -66,10 +66,11 @@ Args:
         - (dim1,dim2)-diagnal, 
         - (dim1,-dim2)-diagnal direction
     rep_range: distance of the long range repulsive weights
+    min_size: the minimal number of pixels to form a cluster, default=0
 Return: (H x W) segmentation map
 '''
 
-mws3d(attractive, repulsive, repulsive_range)
+mws3d(attractive, repulsive, repulsive_range, min_sz)
 '''
 Args: 
     attractive: (H x W x D, 3) attractive weights with neigbor pixels (with distance 1) along directions
@@ -87,6 +88,7 @@ Args:
         - (dim2,dim3)-diagnal
         - (dim2,-dim3)-diagnal
     rep_range: distance of the long range repulsive weights
+    min_size: the minimal number of pixels to form a cluster, default=0
 Return: (H x W x D) segmentation map
 '''
 ```

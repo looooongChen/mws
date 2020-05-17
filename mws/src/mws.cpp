@@ -4,10 +4,13 @@
 #include <numpy/arrayobject.h>
 
 class UF {
-    public:
+
+    private:
         npy_intp node_num = 0;
         npy_intp* nodes;
         npy_intp* cp_size;
+
+    public:
         UF(npy_intp size) {
             node_num = size;
             nodes = new npy_intp[size];
@@ -24,6 +27,10 @@ class UF {
                 n = nodes[n];
             }
             return n;
+        }
+
+        npy_intp cluster_size(npy_intp n) {
+            return cp_size[n];
         }
 
         bool is_connected(npy_intp n1, npy_intp n2) {
@@ -107,6 +114,7 @@ static PyObject* mws2d_c (PyObject *self, PyObject *args) {
     //        repulsive weights along (dim1)-axis, (dim2)-axis, (dim1,dim2)-diagnal, (dim1,-dim2)-diagnal direction
     //        margin area will be ingored
     //    rep_range l, int:
+    //    min_sz, it: minimal number of pixels to form a cluster
     
     // Note: 
     //    - only attractive / repulisve != 0 will be processed, to reduce the computation workload, set non-concerning edge to zeor
@@ -114,8 +122,9 @@ static PyObject* mws2d_c (PyObject *self, PyObject *args) {
 
     PyArrayObject *attractive = NULL, *repulsive = NULL, *res = NULL;
     int rep_range;
+    int min_sz;
  
-    if (!PyArg_ParseTuple(args, "O!O!i", &PyArray_Type, &attractive, &PyArray_Type, &repulsive, &rep_range))
+    if (!PyArg_ParseTuple(args, "O!O!ii", &PyArray_Type, &attractive, &PyArray_Type, &repulsive, &rep_range, &min_sz))
         return NULL;
 
     npy_intp *dims = PyArray_DIMS(attractive);
@@ -152,8 +161,6 @@ static PyObject* mws2d_c (PyObject *self, PyObject *args) {
     dims_res[1] = dims[1];
 
     res = (PyArrayObject*)PyArray_SimpleNew(2,dims_res,NPY_INT32);
-
-    
 
     // sort edges (in increasing order)
     float* data_attr = (float*)PyArray_DATA(attractive);
@@ -216,10 +223,19 @@ static PyObject* mws2d_c (PyObject *self, PyObject *args) {
         }
     }
     
+    npy_intp root, size;
     for(int ind=0; ind<dims[0]*dims[1]; ind++){
         i = ind / dims[1];
         j = ind % dims[1];
-        *(npy_intp *)PyArray_GETPTR2(res, i, j) = G_attr.root(ind);
+        root = G_attr.root(ind);
+        size = G_attr.cluster_size(root);
+        if(size > min_sz){
+            *(npy_intp *)PyArray_GETPTR2(res, i, j) = root + 1;
+        }
+        else{
+            *(npy_intp *)PyArray_GETPTR2(res, i, j) = 0;
+        }
+        
     }
 
     return PyArray_Return(res);
@@ -234,6 +250,7 @@ static PyObject* mws3d_c (PyObject *self, PyObject *args) {
     //        repulsive weights along (dim1)-axis, (dim2)-axis, (dim3)-axis (dim1,dim2)-diagnal, (dim1,-dim2)-diagnal, (dim1,dim3)-diagnal, (dim1,-dim3)-diagnal, (dim2,dim3)-diagnal, (dim2,-dim3)-diagnal direction
     //        margin area will be ingored
     //    rep_range l, int:
+    //    min_sz, it: minimal number of pixels to form a cluster
     
     // Note: 
     //    - only attractive / repulisve != 0 will be processed, to reduce the computation workload, set non-concerning edge to zeor
@@ -241,8 +258,9 @@ static PyObject* mws3d_c (PyObject *self, PyObject *args) {
 
     PyArrayObject *attractive = NULL, *repulsive = NULL, *res = NULL;
     int rep_range;
+    int min_sz;
  
-    if (!PyArg_ParseTuple(args, "O!O!i", &PyArray_Type, &attractive, &PyArray_Type, &repulsive, &rep_range))
+    if (!PyArg_ParseTuple(args, "O!O!ii", &PyArray_Type, &attractive, &PyArray_Type, &repulsive, &rep_range, &min_sz))
         return NULL;
 
     npy_intp *dims = PyArray_DIMS(attractive);
@@ -375,11 +393,21 @@ static PyObject* mws3d_c (PyObject *self, PyObject *args) {
         }
     }
     
+    npy_intp root, size;
     for(npy_intp ind=0; ind<dims[0]*dims[1]*dims[2]; ind++){
         i = ind / (dims[1]*dims[2]);
         j = ind % (dims[1]*dims[2]) / dims[2];
         k = ind % dims[2];
-        *(npy_intp *)PyArray_GETPTR3(res, i, j, k) = G_attr.root(ind);
+        root = G_attr.root(ind);
+        size = G_attr.cluster_size(root);
+        if(size > min_sz){
+            *(npy_intp *)PyArray_GETPTR3(res, i, j, k) = root + 1;
+        }
+        else{
+            *(npy_intp *)PyArray_GETPTR3(res, i, j, k) = 0;
+        }
+
+        
     }
 
     return PyArray_Return(res);
