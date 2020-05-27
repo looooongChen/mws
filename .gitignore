@@ -2,3 +2,4 @@ mws/__pycache__/
 mws/src/mws*
 build/
 dist/
+mws.egg-info
