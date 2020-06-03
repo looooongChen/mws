@@ -48,9 +48,10 @@ def mws3d(attractive, repulsive, repulsive_range, min_size):
 
 class MutexCosinePixelEmbedding(object):
 
-    def __init__(self, lange_range=4, min_size=0):
+    def __init__(self, lange_range=4, min_size=0, compensate=0.2):
         self.lange_range = lange_range
         self.min_size = min_size
+        self.compensate = compensate
     
     def run(self, image, mask=None):
         '''
@@ -84,7 +85,7 @@ class MutexCosinePixelEmbedding(object):
             # get the attr and repulisive weights
             attr = 3.1415/2 - np.arccos(np.clip(np.stack([a0, a1], axis=-1), 0, 1))
             attr = attr * mask
-            rep = -1 * np.arccos(np.clip(np.stack([r0, r1, r01, r01_], axis=-1), 0, 1))+0.2
+            rep = -1 * np.arccos(np.clip(np.stack([r0, r1, r01, r01_], axis=-1), 0, 1)) + self.compensate
             rep = rep * mask
 
         if len(sz) == 3:

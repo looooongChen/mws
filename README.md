@@ -103,10 +103,18 @@ If you work on pixel embedding, the following class may be also helpful:
 
 ```python
 class MutexCosinePixelEmbedding(object):
-    ...
+    def __init__(self, lange_range=4, min_size=0, compensate=0.2):
+        ...
+    
+    def run(self, image, mask=None):
+        ...
 
 class MutexEuclideanPixelEmbedding(object):
-    ...
+    def __init__(self, lange_range=4, min_size=0, cluster_distance=3):
+        ...
+
+    def run(self, image, mask=None):
+        ...
 ```
 
 ## Reference
